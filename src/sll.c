@@ -13,6 +13,9 @@ struct single_linked_list_t{
 };
 
 struct single_linked_list_t* sll_init(int(*compare)(void* x, void* y)){
+    if(!compare){
+        return NULL;
+    }
     single_linked_list_t* out;
     if(!(out = malloc(sizeof(*out)))){
         return NULL;
@@ -105,7 +108,7 @@ bool sll_contains(void* x, single_linked_list_t* list){
 }
 
 void* sll_get_head(struct single_linked_list_t* list){
-    return list->head;
+    return list->head->data;
 }
 
 size_t sll_size(struct single_linked_list_t* list){
