@@ -1,0 +1,163 @@
+.TH SLL 3 "October 2026" "" "Library Functions Manual"
+.SH NAME
+sll_init, sll_free, sll_append, sll_prepend, sll_remove_head, sll_contains, sll_get_head, sll_size, sll_is_empty \- singly linked list of generic pointers
+.SH SYNOPSIS
+.nf
+.B #include \(dqsll.h\(dq
+.PP
+.BI "single_linked_list_t *sll_init(int (*" compare ")(void *" x ", void *" y ));
+.BI "void sll_free(single_linked_list_t *" list );
+.PP
+.BI "int sll_append(void *" x ", single_linked_list_t *" list );
+.BI "int sll_prepend(void *" x ", single_linked_list_t *" list );
+.PP
+.BI "void *sll_remove_head(single_linked_list_t *" list );
+.BI "void *sll_get_head(single_linked_list_t *" list );
+.PP
+.BI "bool sll_contains(void *" x ", single_linked_list_t *" list );
+.BI "size_t sll_size(single_linked_list_t *" list );
+.BI "bool sll_is_empty(single_linked_list_t *" list );
+.fi
+.SH DESCRIPTION
+These functions implement a singly linked list that stores
+.I void\ *
+elements.
+The list type,
+.IR single_linked_list_t ,
+is opaque; it can only be manipulated through the functions below.
+.PP
+The list stores the pointers it is given and never copies or frees the data
+they point to.
+The caller owns the data and must keep it valid for as long as it is in the list.
+.PP
+.BR sll_init ()
+allocates and returns a new, empty list.
+.I compare
+must not be NULL.
+It is used by
+.BR sll_contains ()
+to test elements for equality.
+It is called as
+.IR compare(x,\ element)
+and must return 0 when the two are considered equal.
+.PP
+.BR sll_free ()
+frees every node in the list and the list itself.
+The data pointers stored in the nodes are
+.B not
+freed.
+.PP
+.BR sll_append ()
+adds
+.I x
+to the end of the list.
+This requires walking the whole list, so it takes O(n) time.
+.PP
+.BR sll_prepend ()
+adds
+.I x
+to the front of the list in O(1) time.
+.PP
+.BR sll_remove_head ()
+removes the first node of the list, frees the node, and returns the data pointer
+it held.
+.PP
+.BR sll_contains ()
+returns true if
+.I compare
+returns 0 for any element in the list, checking from head to tail.
+.PP
+.BR sll_get_head ()
+returns the data pointer stored in the first node without removing it.
+The list must not be empty; see
+.BR BUGS .
+.PP
+.BR sll_size ()
+returns the number of elements in the list.
+.PP
+.BR sll_is_empty ()
+returns true if the list has no elements.
+.SH RETURN VALUE
+.BR sll_init ()
+returns a pointer to the new list, or NULL if
+.I compare
+is NULL or memory allocation fails.
+.PP
+.BR sll_append ()
+and
+.BR sll_prepend ()
+return 0 on success and \-1 on failure.
+Failure occurs if
+.I x
+or
+.I list
+is NULL, or if memory allocation fails.
+Because NULL is rejected, NULL cannot be stored in the list.
+.PP
+.BR sll_remove_head ()
+returns the removed data pointer, or NULL if the list is empty.
+.PP
+.BR sll_contains ()
+returns true if a match is found and false otherwise (including when the list is empty).
+.PP
+.BR sll_get_head ()
+returns the data pointer of the first element.
+The behavior is undefined if the list is empty.
+.PP
+.BR sll_size ()
+returns the element count.
+.PP
+.BR sll_is_empty ()
+returns true if the list is empty.
+.SH NOTES
+Except for
+.BR sll_append ()
+and
+.BR sll_prepend (),
+the functions do not check for a NULL
+.I list
+argument.
+Passing NULL results in undefined behavior.
+.PP
+The functions are not thread-safe.
+Concurrent access to the same list requires external locking.
+.SH EXAMPLE
+.nf
+#include <stdio.h>
+#include <string.h>
+#include \(dqsll.h\(dq
+
+static int cmp_str(void *x, void *y)
+{
+    return strcmp(x, y);
+}
+
+int main(void)
+{
+    single_linked_list_t *list = sll_init(cmp_str);
+    if (!list)
+        return 1;
+
+    sll_append(\(dqworld\(dq, list);
+    sll_prepend(\(dqhello\(dq, list);
+
+    if (sll_contains(\(dqworld\(dq, list))
+        printf(\(dqfound, size = %zu\en\(dq, sll_size(list));
+
+    while (!sll_is_empty(list))
+        printf(\(dq%s\en\(dq, (char *) sll_remove_head(list));
+
+    sll_free(list);
+    return 0;
+}
+.fi
+.SH BUGS
+.BR sll_get_head ()
+does not check whether the list is empty and dereferences the head pointer
+unconditionally, so calling it on an empty list crashes.
+Call
+.BR sll_is_empty ()
+first.
+.SH SEE ALSO
+.BR malloc (3),
+.BR free (3)
