@@ -15,14 +15,16 @@ Readme · MD
  
 - TLDR: This will be updated as I implement each with more detailed documentation.
 ## Single Linked List API
- 
-- `append(x)` - appends x to end of list
-- `prepend(x)` - prepends x to start of list
-- `remove_head()` - removes head of list
-- `contains(x)` - checks if x is in list
-- `get_head()` - gets head of list
-- `size()` - size of list
-- `is_empty()` - whether list is empty
+
+- `sll_init(compare_func)` - allocated and create a empty list takes comaparator as function pointer
+- `sll_free(list)` - deallocates list
+- `sll_append(x, list)` - appends x to end of list
+- `sll_prepend(x, list)` - prepends x to start of list
+- `sll_remove_head(list)` - removes head of list
+- `sll_contains(x, list)` - checks if x is in list
+- `sll_get_head(list)` - gets head of list
+- `sll_size(list)` - size of list
+- `sll_is_empty(list)` - whether list is empty
 ## Double Linked List API
  
 - `append(x)` - appends x to end of list

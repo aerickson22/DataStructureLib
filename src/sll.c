@@ -1,5 +1,4 @@
 #include "sll.h"
-#include "common.h"
 
 struct sll_node_t{
     void* data;
@@ -36,6 +35,10 @@ void sll_free(struct single_linked_list_t* list){
     }
     free(curr);
     free(list);
+}
+
+bool sll_is_empty(struct single_linked_list_t* list){
+    return !list->head;
 }
 
 int sll_append(void* x, struct single_linked_list_t* list){
@@ -115,6 +118,4 @@ size_t sll_size(struct single_linked_list_t* list){
     return list->size;
 }
 
-bool sll_is_empty(struct single_linked_list_t* list){
-    return !list->head;
-}
+
