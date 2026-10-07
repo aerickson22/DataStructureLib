@@ -1,0 +1,179 @@
+.TH DLL 3 "October 2026" "dll" "Library Functions Manual"
+.SH NAME
+dll_init, dll_free, dll_is_empty, dll_append, dll_prepend, dll_remove_head,
+dll_remove_tail, dll_contains, dll_get_head, dll_get_tail, dll_size \-
+generic doubly linked list
+.SH SYNOPSIS
+.nf
+.B #include \(dqdll.h\(dq
+.PP
+.BI "struct double_linked_list_t *dll_init(int (*" compare ")(void *" x ", void *" y "));"
+.BI "void dll_free(struct double_linked_list_t *" list ");"
+.PP
+.BI "bool dll_is_empty(struct double_linked_list_t *" list ");"
+.BI "size_t dll_size(struct double_linked_list_t *" list ");"
+.PP
+.BI "int dll_append(void *" x ", struct double_linked_list_t *" list ");"
+.BI "int dll_prepend(void *" x ", struct double_linked_list_t *" list ");"
+.PP
+.BI "void *dll_remove_head(struct double_linked_list_t *" list ");"
+.BI "void *dll_remove_tail(struct double_linked_list_t *" list ");"
+.PP
+.BI "bool dll_contains(void *" x ", struct double_linked_list_t *" list ");"
+.BI "void *dll_get_head(struct double_linked_list_t *" list ");"
+.BI "void *dll_get_tail(struct double_linked_list_t *" list ");"
+.fi
+.SH DESCRIPTION
+These functions implement a doubly linked list of
+.I "void\ *"
+elements.
+The list stores the pointers it is given; it never copies, inspects or frees
+the data they point to.
+.PP
+.BR dll_init ()
+allocates and returns a new, empty list.
+.I compare
+is used by
+.BR dll_contains ()
+to test elements for equality.
+It is called with two elements and must return 0 if they are equal and
+non-zero otherwise.
+.PP
+.BR dll_free ()
+frees every node of
+.I list
+and then the list itself.
+The data pointers held by the nodes are not freed.
+.I list
+must not be used afterwards.
+.PP
+.BR dll_is_empty ()
+returns true if
+.I list
+holds no elements.
+.PP
+.BR dll_size ()
+returns the number of elements in
+.IR list .
+.PP
+.BR dll_append ()
+adds
+.I x
+as the new last element of
+.IR list .
+.PP
+.BR dll_prepend ()
+adds
+.I x
+as the new first element of
+.IR list .
+.PP
+.BR dll_remove_head ()
+removes the first element of
+.I list
+and returns its data.
+.PP
+.BR dll_remove_tail ()
+removes the last element of
+.I list
+and returns its data.
+.PP
+.BR dll_contains ()
+returns true if any element of
+.I list
+compares equal to
+.I x
+according to the
+.I compare
+function given to
+.BR dll_init ().
+The list is searched from both ends toward the middle, and each element
+is compared at most once.
+.PP
+.BR dll_get_head ()
+and
+.BR dll_get_tail ()
+return the data of the first and last element of
+.IR list ,
+respectively, without removing it.
+.SH RETURN VALUE
+.BR dll_init ()
+returns a pointer to the new list, or NULL if memory could not be allocated.
+.PP
+.BR dll_append ()
+and
+.BR dll_prepend ()
+return 0 on success and \-1 if memory could not be allocated.
+In that case the list is unchanged.
+.PP
+.BR dll_remove_head (),
+.BR dll_remove_tail (),
+.BR dll_get_head ()
+and
+.BR dll_get_tail ()
+return the element's data, or NULL if the list is empty.
+Because NULL is also a valid element, use
+.BR dll_is_empty ()
+or
+.BR dll_size ()
+to tell an empty list from a stored NULL.
+.PP
+.BR dll_is_empty ()
+and
+.BR dll_contains ()
+return true or false.
+.PP
+.BR dll_size ()
+returns the element count.
+.PP
+.BR dll_free ()
+returns no value.
+.SH NOTES
+Neither the list pointer nor the
+.I compare
+function is checked for NULL.
+Passing a NULL list, or calling
+.BR dll_contains ()
+on a list created with a NULL
+.IR compare ,
+is undefined behavior.
+.PP
+The list is not thread-safe.
+Callers must serialize access to a list that is shared between threads.
+.PP
+The structure is opaque.
+Only the functions above should be used to access it.
+.SH EXAMPLES
+.nf
+#include <stdio.h>
+#include <string.h>
+#include "dll.h"
+
+static int cmp(void *x, void *y)
+{
+    return strcmp(x, y);
+}
+
+int main(void)
+{
+    struct double_linked_list_t *list = dll_init(cmp);
+    if (!list)
+        return 1;
+
+    dll_append("world", list);
+    dll_prepend("hello", list);
+
+    printf("%zu elements\en", dll_size(list));
+    printf("first: %s\en", (char *) dll_get_head(list));
+    printf("has world: %d\en", dll_contains("world", list));
+
+    dll_remove_tail(list);
+    dll_remove_head(list);
+    dll_free(list);
+    return 0;
+}
+.fi
+.SH SEE ALSO
+.BR malloc (3),
+.BR free (3),
+.BR qsort (3)
