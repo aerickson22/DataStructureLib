@@ -5,26 +5,27 @@ sll_init, sll_free, sll_append, sll_prepend, sll_remove_head, sll_contains, sll_
 .nf
 .B #include \(dqsll.h\(dq
 .PP
-.BI "single_linked_list_t *sll_init(int (*" compare ")(void *" x ", void *" y ));
-.BI "void sll_free(single_linked_list_t *" list );
+.BI "single_linked_list sll_init(int (*" compare ")(void *" x ", void *" y ));
+.BI "void sll_free(single_linked_list " list );
 .PP
-.BI "int sll_append(void *" x ", single_linked_list_t *" list );
-.BI "int sll_prepend(void *" x ", single_linked_list_t *" list );
+.BI "int sll_append(void *" x ", single_linked_list " list );
+.BI "int sll_prepend(void *" x ", single_linked_list " list );
 .PP
-.BI "void *sll_remove_head(single_linked_list_t *" list );
-.BI "void *sll_get_head(single_linked_list_t *" list );
+.BI "void *sll_remove_head(single_linked_list " list );
+.BI "void *sll_get_head(single_linked_list " list );
 .PP
-.BI "bool sll_contains(void *" x ", single_linked_list_t *" list );
-.BI "size_t sll_size(single_linked_list_t *" list );
-.BI "bool sll_is_empty(single_linked_list_t *" list );
+.BI "bool sll_contains(void *" x ", single_linked_list " list );
+.BI "size_t sll_size(single_linked_list " list );
+.BI "bool sll_is_empty(single_linked_list " list );
 .fi
 .SH DESCRIPTION
 These functions implement a singly linked list that stores
 .I void\ *
 elements.
 The list type,
-.IR single_linked_list_t ,
-is opaque; it can only be manipulated through the functions below.
+.IR single_linked_list ,
+is an opaque handle (a typedef for a pointer to a private structure).
+It can only be manipulated through the functions below.
 .PP
 The list stores the pointers it is given and never copies or frees the data
 they point to.
@@ -79,7 +80,7 @@ returns the number of elements in the list.
 returns true if the list has no elements.
 .SH RETURN VALUE
 .BR sll_init ()
-returns a pointer to the new list, or NULL if
+returns a new list handle, or NULL if
 .I compare
 is NULL or memory allocation fails.
 .PP
@@ -134,7 +135,7 @@ static int cmp_str(void *x, void *y)
 
 int main(void)
 {
-    single_linked_list_t *list = sll_init(cmp_str);
+    single_linked_list list = sll_init(cmp_str);
     if (!list)
         return 1;
 
