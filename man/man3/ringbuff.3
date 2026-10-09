@@ -1,0 +1,189 @@
+.TH RINGBUFF 3 "October 2026" "ringbuff" "Library Functions Manual"
+.SH NAME
+ringbuff_init, ringbuff_free, ringbuff_push, ringbuff_pop, ringbuff_peek,
+ringbuff_is_empty, ringbuff_is_full, ringbuff_size \- fixed\-capacity FIFO ring buffer
+.SH SYNOPSIS
+.nf
+.B #include \(dqringbuff.h\(dq
+.PP
+.B typedef struct ring_buffer_t *ring_buffer_t;
+.PP
+.BI "ring_buffer_t ringbuff_init(size_t " capacity ", size_t " element_size );
+.BI "void ringbuff_free(ring_buffer_t " buff );
+.PP
+.BI "int ringbuff_push(void *" x ", ring_buffer_t " buff );
+.BI "void ringbuff_pop(void *" out ", ring_buffer_t " buff );
+.BI "void *ringbuff_peek(ring_buffer_t " buff );
+.PP
+.BI "bool ringbuff_is_empty(ring_buffer_t " buff );
+.BI "bool ringbuff_is_full(ring_buffer_t " buff );
+.BI "size_t ringbuff_size(ring_buffer_t " buff );
+.fi
+.SH DESCRIPTION
+These functions implement a first\-in, first\-out queue of fixed\-size elements
+stored in a circular buffer.
+The capacity and element size are chosen when the buffer is created and do not
+change.
+Elements are copied into the buffer on insertion and copied out on removal, so
+the caller always keeps ownership of its own objects.
+The library never returns memory that the caller must free.
+.PP
+The type
+.I ring_buffer_t
+is an opaque handle (a pointer to an incomplete structure).
+Callers must not dereference it.
+.PP
+The functions are not thread\-safe.
+Callers sharing a buffer between threads must provide their own locking.
+.SS ringbuff_init()
+Allocates a buffer able to hold
+.I capacity
+elements of
+.I element_size
+bytes each.
+The buffer starts empty.
+.SS ringbuff_free()
+Releases the buffer and its storage.
+The handle must not be used afterwards.
+Pointers previously returned by
+.BR ringbuff_peek ()
+become invalid.
+.SS ringbuff_push()
+Copies
+.I element_size
+bytes from
+.I x
+to the tail of the queue.
+Existing elements are never overwritten: if the buffer is full, the call fails
+and the contents are unchanged.
+.SS ringbuff_pop()
+Removes the element at the head of the queue (the oldest one) and copies it to
+.IR out .
+.I out
+must point to storage of at least
+.I element_size
+bytes.
+Once the last element is removed, the buffer returns to its initial empty
+state and can be refilled to full capacity.
+.PP
+If the buffer is empty, nothing is copied, the buffer is unchanged, and
+.I out
+is not modified.
+Because the function returns no value, it cannot report this case; callers
+should test
+.BR ringbuff_is_empty ()
+or
+.BR ringbuff_size ()
+first.
+.SS ringbuff_peek()
+Returns a pointer to the element at the head of the queue, which is the element
+the next
+.BR ringbuff_pop ()
+would remove, without removing it.
+The pointer refers to the buffer's internal storage.
+It must not be freed, and it should be treated as invalid after any subsequent
+call to
+.BR ringbuff_pop ()
+or
+.BR ringbuff_free (),
+since the slot may be reused.
+.SS ringbuff_is_empty(), ringbuff_is_full(), ringbuff_size()
+Report whether the buffer holds no elements, whether it holds
+.I capacity
+elements, and the current number of stored elements, respectively.
+.SH RETURN VALUE
+.BR ringbuff_init ()
+returns a new handle on success, or
+.B NULL
+if memory could not be allocated.
+.PP
+.BR ringbuff_push ()
+returns 0 on success and \-1 if the buffer is full.
+.PP
+.BR ringbuff_peek ()
+returns a pointer to the oldest element, or
+.B NULL
+if the buffer is empty.
+.PP
+.BR ringbuff_is_empty ()
+and
+.BR ringbuff_is_full ()
+return true or false.
+.BR ringbuff_size ()
+returns the number of elements currently stored, from 0 to
+.IR capacity .
+.PP
+.BR ringbuff_pop ()
+and
+.BR ringbuff_free ()
+return no value.
+.SH ERRORS
+The functions do not set
+.IR errno
+themselves.
+.BR ringbuff_init ()
+may fail with the errors of
+.BR malloc (3).
+.SH NOTES
+None of the functions check their arguments for
+.BR NULL .
+Passing a null or already freed handle, a null
+.I x
+to
+.BR ringbuff_push (),
+or a null
+.I out
+to
+.BR ringbuff_pop ()
+on a non\-empty buffer results in undefined behavior.
+.PP
+.BR ringbuff_init ()
+does not validate its arguments.
+A
+.I capacity
+or
+.I element_size
+of zero, or a product that overflows
+.IR size_t ,
+leads to undefined behavior or an undersized allocation.
+Callers should validate these values.
+.PP
+.BR ringbuff_push ()
+reads, and
+.BR ringbuff_pop ()
+writes,
+.I element_size
+bytes through their pointer argument, so that pointer must refer to an object
+at least that large.
+.SH EXAMPLES
+.nf
+#include "ringbuff.h"
+#include <stdio.h>
+
+int main(void)
+{
+    ring_buffer_t q = ringbuff_init(4, sizeof(int));
+    if (q == NULL)
+        return 1;
+
+    for (int i = 0; i < 6; i++) {
+        if (ringbuff_push(&i, q) == \-1)
+            printf("full, dropped %d\en", i);
+    }
+
+    int *front = ringbuff_peek(q);
+    if (front != NULL)
+        printf("next: %d\en", *front);
+
+    while (!ringbuff_is_empty(q)) {
+        int v;
+        ringbuff_pop(&v, q);
+        printf("%d\en", v);
+    }
+
+    ringbuff_free(q);
+    return 0;
+}
+.fi
+.SH SEE ALSO
+.BR memcpy (3)

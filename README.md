@@ -1,5 +1,3 @@
-
-Readme · MD
 # Data Structures Library
  
 - This is a simple Data Structures Static Library in C
@@ -27,22 +25,25 @@ Readme · MD
 - `sll_is_empty(list)` - whether list is empty
 ## Double Linked List API
  
-- `append(x)` - appends x to end of list
-- `prepend(x)` - prepends x to start of list
-- `remove_head()` - removes x from head of list
-- `remove_tail()` - removes x from tail of list
-- `contains(x)` - checks if x is in list
-- `get_head()` - gets head of list
-- `get_tail()` - gets tail of list
-- `size()` - size of list
-- `is_empty()` - whether list is empty
+- `dll_append(x, list)` - appends x to end of list
+- `dll_prepend(x, list)` - prepends x to start of list
+- `dll_remove_head(list)` - removes head of list
+- `dll_remove_tail(list)` - removes tail of list
+- `dll_contains(x, list)` - checks if x is in list
+- `dll_get_head(list)` - gets head of list
+- `dll_get_tail(list)` - gets tail of list
+- `dll_size(list)` - size of list
+- `dll_is_empty(list)` - whether list is empty
 ## Ring Buffer API
- 
-- `put(x)` - inserts element at tail
-- `get()` - gets element from head
-- `is_empty()` - whether buffer is empty
-- `is_full()` - whether buffer is full
-- `size()` - size of buffer
+
+- `ringbuff_init(capacity, element_size)` - allocates and creates an empty buffer
+- `ringbuff_free(buff)` - deallocates buffer
+- `ringbuff_push(x, buff)` - inserts x at tail of buffer, returns -1 if full
+- `ringbuff_pop(out, buff)` - copies head of buffer into out and removes it
+- `ringbuff_peek(buff)` - gets head of buffer without removing it
+- `ringbuff_is_empty(buff)` - whether buffer is empty
+- `ringbuff_is_full(buff)` - whether buffer is full
+- `ringbuff_size(buff)` - size of buffer
 ## Dynamic Array API
  
 - `push(x)` - appends element to end of array
