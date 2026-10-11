@@ -1,0 +1,170 @@
+.TH DA 3 "October 2026" "da 1.0" "Library Functions Manual"
+.SH NAME
+da_init, da_free, da_push, da_at, da_set, da_remove, da_is_empty, da_size, da_capacity \- generic dynamic array
+.SH SYNOPSIS
+.nf
+.B #include \(dqda.h\(dq
+.PP
+.BI "dynamic_array_t da_init(size_t " element_size );
+.BI "void da_free(dynamic_array_t " list );
+.PP
+.BI "int da_push(void *" x ", dynamic_array_t " list );
+.BI "int da_at(void *" out ", size_t " index ", dynamic_array_t " list );
+.BI "int da_set(size_t " index ", void *" x ", dynamic_array_t " list );
+.BI "int da_remove(void *" out ", dynamic_array_t " list );
+.PP
+.BI "bool da_is_empty(dynamic_array_t " list );
+.BI "size_t da_size(dynamic_array_t " list );
+.BI "size_t da_capacity(dynamic_array_t " list );
+.fi
+.SH DESCRIPTION
+These functions implement a resizable array that stores elements of a single,
+fixed size chosen at creation time.
+Elements are stored contiguously and are copied by value into and out of the
+array, so the array may hold any type.
+.PP
+The array starts with room for 10 elements.
+When it becomes full, its capacity is doubled.
+Capacity is never reduced.
+.PP
+.BR da_init ()
+allocates and returns an empty array whose elements are
+.I element_size
+bytes each (for example,
+.IR sizeof(int) ).
+.PP
+.BR da_free ()
+releases all memory owned by
+.IR list .
+.I list
+must not be used afterward.
+.PP
+.BR da_push ()
+appends a copy of the
+.I element_size
+bytes at
+.I x
+to the end of
+.IR list ,
+growing the array if needed.
+.PP
+.BR da_at ()
+copies the element at position
+.I index
+into the buffer
+.IR out ,
+which must be at least
+.I element_size
+bytes.
+Indices start at 0.
+.PP
+.BR da_set ()
+replaces the element at position
+.I index
+with a copy of the bytes at
+.IR x .
+.PP
+.BR da_remove ()
+removes the last element of
+.I list
+and copies it into
+.IR out ,
+which must be at least
+.I element_size
+bytes.
+.PP
+.BR da_is_empty ()
+returns true if
+.I list
+holds no elements.
+.PP
+.BR da_size ()
+returns the number of elements currently stored.
+.PP
+.BR da_capacity ()
+returns the number of elements that can be stored before the next resize.
+.SH RETURN VALUE
+.BR da_init ()
+returns a new array on success, or
+.B NULL
+if memory could not be allocated.
+.PP
+.BR da_push (),
+.BR da_at (),
+.BR da_set (),
+and
+.BR da_remove ()
+return 0 on success and \-1 on failure.
+.PP
+.BR da_is_empty ()
+returns true or false.
+.BR da_size ()
+and
+.BR da_capacity ()
+return the requested count.
+.SH ERRORS
+.TP
+.BR da_push ()
+Fails if the array must grow and memory cannot be allocated.
+The array is left unchanged.
+.TP
+.BR da_at (),
+.BR da_set ()
+Fail if
+.I index
+is greater than or equal to
+.BR da_size ().
+.TP
+.BR da_remove ()
+Fails if the array is empty.
+.SH NOTES
+Because elements are copied with
+.BR memcpy (3),
+pointers stored in the array are copied as values.
+The array does not free memory that stored pointers refer to.
+.PP
+The functions are not thread-safe.
+Callers must provide their own locking if an array is shared between threads.
+.PP
+Passing
+.B NULL
+or an already freed
+.I list
+to any function is undefined behavior.
+.SH EXAMPLES
+.nf
+#include \(dqda.h\(dq
+#include <stdio.h>
+
+int main(void)
+{
+    dynamic_array_t list = da_init(sizeof(int));
+    if (list == NULL)
+        return 1;
+
+    for (int i = 0; i < 100; i++) {
+        if (da_push(&i, list) != 0) {
+            da_free(list);
+            return 1;
+        }
+    }
+
+    int value;
+    da_at(&value, 45, list);        /* value == 45 */
+
+    value = 55;
+    da_set(45, &value, list);       /* element 45 is now 55 */
+
+    da_remove(&value, list);        /* value == 99, size == 99 */
+
+    printf("size=%zu capacity=%zu\en",
+           da_size(list), da_capacity(list));
+
+    da_free(list);
+    return 0;
+}
+.fi
+.SH SEE ALSO
+.BR malloc (3),
+.BR realloc (3),
+.BR memcpy (3)
