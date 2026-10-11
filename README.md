@@ -46,13 +46,15 @@
 - `ringbuff_size(buff)` - size of buffer
 ## Dynamic Array API
  
-- `push(x)` - appends element to end of array
-- `at(i)` - gets element at index i
-- `set(i, x)` - replaces element at index i with x
-- `remove(i)` - removes element at index i
-- `size()` - size of array
-- `is_empty()` - whether array is empty
-- `capacity()` - capacity of array
+- `da_init(element_size)` - allocates and creates an empty array of elements that are `element_size` bytes each, returns NULL on failure
+- `da_free(list)` - deallocates array
+- `da_push(x, list)` - appends x to end of array, grows capacity if full, returns -1 on failure
+- `da_at(out, i, list)` - copies element at index i into out, returns -1 if i is out of bounds
+- `da_set(i, x, list)` - replaces element at index i with x, returns -1 if i is out of bounds
+- `da_remove(out, list)` - removes last element and copies it into out, returns -1 if empty
+- `da_is_empty(list)` - whether array is empty
+- `da_size(list)` - size of array
+- `da_capacity(list)` - capacity of array
 ## Queue API
  
 - `offer(x)` - inserts an element
