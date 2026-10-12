@@ -1,0 +1,149 @@
+.TH QUEUE 3 "October 2026" "queue 1.0" "Library Functions Manual"
+.SH NAME
+queue_init, queue_free, queue_offer, queue_poll, queue_peek, queue_size, queue_is_empty \- first-in, first-out queue
+.SH SYNOPSIS
+.nf
+.B #include \(dqqueue.h\(dq
+.PP
+.BI "queue_t queue_init(int (*" compare ")(void *" x ", void *" y "));"
+.BI "void queue_free(queue_t " q );
+.PP
+.BI "int queue_offer(void *" x ", queue_t " q );
+.BI "void *queue_poll(queue_t " q );
+.BI "void *queue_peek(queue_t " q );
+.PP
+.BI "size_t queue_size(queue_t " q );
+.BI "bool queue_is_empty(queue_t " q );
+.fi
+.SH DESCRIPTION
+These functions implement a first-in, first-out (FIFO) queue of pointers.
+Elements are removed in the same order in which they were added.
+The queue is built on a doubly linked list.
+.PP
+The queue stores the pointers it is given, not copies of the data they point to.
+The caller owns the pointed-to data and must keep it valid for as long as it is
+in the queue.
+.PP
+.BR queue_init ()
+allocates and returns an empty queue.
+The
+.I compare
+function is passed to the underlying list.
+It must return a negative value, zero, or a positive value if
+.I x
+is less than, equal to, or greater than
+.IR y ,
+respectively.
+It does not affect the order in which elements are removed.
+.PP
+.BR queue_free ()
+releases all memory owned by the queue.
+It does not free the elements that were stored in it.
+.I q
+must not be used afterward.
+.PP
+.BR queue_offer ()
+adds
+.I x
+to the tail of the queue.
+.PP
+.BR queue_poll ()
+removes the element at the head of the queue and returns it.
+.PP
+.BR queue_peek ()
+returns the element at the head of the queue without removing it.
+.PP
+.BR queue_size ()
+returns the number of elements in the queue.
+.PP
+.BR queue_is_empty ()
+returns true if the queue holds no elements.
+.SH RETURN VALUE
+.BR queue_init ()
+returns a new queue on success, or
+.B NULL
+if memory could not be allocated.
+.PP
+.BR queue_offer ()
+returns 0 on success and \-1 on failure.
+.PP
+.BR queue_poll ()
+and
+.BR queue_peek ()
+return the head element, or
+.B NULL
+if the queue is empty.
+.PP
+.BR queue_size ()
+returns the element count.
+.BR queue_is_empty ()
+returns true or false.
+.SH ERRORS
+.TP
+.BR queue_init ()
+Fails if memory for the queue or its underlying list cannot be allocated.
+.TP
+.BR queue_offer ()
+Fails if memory for a new list node cannot be allocated.
+The queue is left unchanged.
+.SH NOTES
+Because
+.BR queue_poll ()
+and
+.BR queue_peek ()
+use
+.B NULL
+to signal an empty queue, storing
+.B NULL
+in the queue makes an empty result ambiguous.
+Use
+.BR queue_is_empty ()
+to tell the two cases apart.
+.PP
+The functions are not thread-safe.
+Callers must provide their own locking if a queue is shared between threads.
+.PP
+Passing
+.B NULL
+or an already freed
+.I q
+to any function is undefined behavior.
+.SH EXAMPLES
+.nf
+#include \(dqqueue.h\(dq
+#include <stdio.h>
+
+static int cmp_int(void *x, void *y)
+{
+    return *(int *)x - *(int *)y;
+}
+
+int main(void)
+{
+    queue_t q = queue_init(cmp_int);
+    if (q == NULL)
+        return 1;
+
+    int vals[3] = { 10, 20, 30 };
+    for (int i = 0; i < 3; i++) {
+        if (queue_offer(&vals[i], q) != 0) {
+            queue_free(q);
+            return 1;
+        }
+    }
+
+    int *head = queue_peek(q);      /* 10, still queued */
+    printf("head=%d\en", *head);
+
+    while (!queue_is_empty(q)) {
+        int *x = queue_poll(q);     /* 10, 20, 30 */
+        printf("%d\en", *x);
+    }
+
+    queue_free(q);
+    return 0;
+}
+.fi
+.SH SEE ALSO
+.BR dll (3),
+.BR malloc (3)

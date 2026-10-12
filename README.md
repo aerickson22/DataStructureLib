@@ -56,12 +56,14 @@
 - `da_size(list)` - size of array
 - `da_capacity(list)` - capacity of array
 ## Queue API
- 
-- `offer(x)` - inserts an element
-- `poll()` - gets and removes the head element
-- `peek()` - looks at the head
-- `size()` - size of queue
-- `is_empty()` - whether queue is empty
+
+- `queue_init(compare)` - allocates and creates an empty queue, takes comparator as function pointer, returns NULL on failure
+- `queue_free(q)` - deallocates queue
+- `queue_offer(x, q)` - inserts x at the tail of the queue, returns -1 on failure
+- `queue_poll(q)` - removes and returns the head element, returns NULL if empty
+- `queue_peek(q)` - returns the head element without removing it, returns NULL if empty
+- `queue_size(q)` - size of queue
+- `queue_is_empty(q)` - whether queue is empty
 ## Hash Table API
  
 - `put(key, value)` - inserts key and value
