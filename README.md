@@ -82,8 +82,6 @@ gcc main.c -I$HOME/.local/include -L$HOME/.local/lib -lds_lib -o main
 
 ## Data Structures
 
-* TLDR: This will be updated as I implement each with more detailed documentation.
-
 ### Single Linked List API
 
 * `sll_init(compare_func)` - allocated and create a empty list takes comaparator as function pointer
