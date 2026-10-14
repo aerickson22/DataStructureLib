@@ -1,0 +1,146 @@
+.TH HT 3 "October 2026" "1.0" "Library Functions Manual"
+.SH NAME
+ht_init, ht_free, ht_put, ht_get, ht_remove, ht_has, ht_size, ht_capacity, ht_is_empty \- generic chained hash table
+.SH SYNOPSIS
+.nf
+.B #include \(dqht.h\(dq
+.PP
+.BI "struct hash_table_t *ht_init(size_t (*" hash_func ")(void *), int (*" compare_key ")(void *, void *));"
+.BI "void ht_free(struct hash_table_t *" ht ");"
+.PP
+.BI "int ht_put(void *" key ", void *" val ", struct hash_table_t *" ht ");"
+.BI "void *ht_get(void *" key ", struct hash_table_t *" ht ");"
+.BI "void *ht_remove(void *" key ", struct hash_table_t *" ht ");"
+.BI "bool ht_has(void *" key ", struct hash_table_t *" ht ");"
+.PP
+.BI "size_t ht_size(struct hash_table_t *" ht ");"
+.BI "size_t ht_capacity(struct hash_table_t *" ht ");"
+.BI "bool ht_is_empty(struct hash_table_t *" ht ");"
+.fi
+.SH DESCRIPTION
+These functions implement a generic hash table that maps
+.B void *
+keys to
+.B void *
+values.
+Collisions are resolved by separate chaining.
+The table starts with 10 buckets and doubles its capacity whenever the ratio of
+stored entries to buckets reaches 0.75 at the time of an insertion.
+.PP
+The table stores only the pointers it is given.
+It never copies, modifies, or frees keys or values.
+The caller must keep them valid for as long as they are in the table.
+.SS ht_init()
+Allocates and returns an empty hash table.
+.I hash_func
+maps a key to a
+.BR size_t ;
+the table reduces the result modulo its capacity.
+.I compare_key
+compares two keys and must return 0 when they are equal.
+Both function pointers are required.
+.SS ht_free()
+Deallocates the table and all of its internal nodes.
+Keys and values are not freed.
+.SS ht_put()
+Inserts
+.I key
+with value
+.IR val .
+If an equal key is already present, its value is replaced and the table size is unchanged.
+The table grows first if the load factor has been reached.
+.SS ht_get()
+Returns the value associated with
+.IR key .
+.SS ht_remove()
+Removes
+.I key
+from the table and returns the value that was associated with it.
+.SS ht_has()
+Returns true if
+.I key
+is present in the table.
+.SS ht_size()
+Returns the number of entries stored in the table.
+.SS ht_capacity()
+Returns the current number of buckets.
+.SS ht_is_empty()
+Returns true if the table contains no entries.
+.SH RETURN VALUE
+.BR ht_init ()
+returns a pointer to the new table, or NULL if memory allocation fails or if either function pointer is NULL.
+.PP
+.BR ht_put ()
+returns 0 on success and \-1 on failure (memory allocation failed).
+On failure the table is left valid and unchanged.
+.PP
+.BR ht_get ()
+and
+.BR ht_remove ()
+return the associated value, or NULL if the key is not found.
+.PP
+.BR ht_has ()
+and
+.BR ht_is_empty ()
+return true or false.
+.PP
+.BR ht_size ()
+and
+.BR ht_capacity ()
+return the requested count.
+.SH NOTES
+.BR ht_get ()
+and
+.BR ht_remove ()
+return NULL both when the key is missing and when the stored value is NULL.
+Use
+.BR ht_has ()
+to tell the two cases apart.
+.PP
+The hash function and comparator must be consistent: keys that compare equal must hash to the same value.
+.PP
+A key must not be modified in a way that changes its hash or comparison result while it is in the table.
+.PP
+None of these functions are thread-safe.
+.SH EXAMPLES
+.nf
+#include <stdio.h>
+#include <string.h>
+#include \(dqht.h\(dq
+
+static size_t hash_str(void *k)
+{
+    size_t h = 5381;
+    for (const unsigned char *p = k; *p; p++)
+        h = h * 33 + *p;
+    return h;
+}
+
+static int cmp_str(void *a, void *b)
+{
+    return strcmp(a, b);
+}
+
+int main(void)
+{
+    static int one = 1, two = 2;
+    struct hash_table_t *ht = ht_init(hash_str, cmp_str);
+    if (!ht)
+        return 1;
+
+    ht_put(\(dqone\(dq, &one, ht);
+    ht_put(\(dqtwo\(dq, &two, ht);
+
+    if (ht_has(\(dqtwo\(dq, ht))
+        printf(\(dq%d\en\(dq, *(int *)ht_get(\(dqtwo\(dq, ht)));
+
+    ht_remove(\(dqone\(dq, ht);
+    printf(\(dqsize: %zu\en\(dq, ht_size(ht));
+
+    ht_free(ht);
+    return 0;
+}
+.fi
+.SH SEE ALSO
+.BR malloc (3),
+.BR calloc (3)

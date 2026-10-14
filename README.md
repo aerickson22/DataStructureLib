@@ -66,14 +66,15 @@
 - `queue_is_empty(q)` - whether queue is empty
 ## Hash Table API
  
-- `put(key, value)` - inserts key and value
-- `get(key)` - gets value for a key
-- `remove(key)` - removes key and its value
-- `has(key)` - checks if key exists
-- `has_value(value)` - checks if value exists
-- `size()` - size of table
-- `capacity()` - capacity of table
-- `is_empty()` - whether table is empty
+- `ht_init(hash_func, compare)` - allocates and creates an empty hash table, takes a hash function and a key comparator (returns 0 when keys are equal) as function pointers, returns NULL on failure
+- `ht_free(ht)` - deallocates table, does not free keys or values
+- `ht_put(key, value, ht)` - inserts key and value, replaces the value if the key already exists, grows capacity if load factor is reached, returns -1 on failure
+- `ht_get(key, ht)` - returns value for key, returns NULL if not found
+- `ht_remove(key, ht)` - removes key and returns its value, returns NULL if not found
+- `ht_has(key, ht)` - whether key exists
+- `ht_size(ht)` - size of table
+- `ht_capacity(ht)` - capacity of table
+- `ht_is_empty(ht)` - whether table is empty
 # Quick start
  
 - TODO
