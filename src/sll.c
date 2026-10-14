@@ -15,7 +15,7 @@ struct single_linked_list_t* sll_init(int(*compare)(void* x, void* y)){
     if(!compare){
         return NULL;
     }
-    single_linked_list_t* out;
+    struct single_linked_list_t* out;
     if(!(out = malloc(sizeof(*out)))){
         return NULL;
     }
@@ -96,7 +96,7 @@ void* sll_remove_head(struct single_linked_list_t* list){
     return out;
 }
 
-bool sll_contains(void* x, single_linked_list_t* list){
+bool sll_contains(void* x, struct single_linked_list_t* list){
     if(sll_is_empty(list)){
         return false;
     }

@@ -7,7 +7,7 @@ int compare_int(void* x, void* y){
 }
 
 int main(){
-    single_linked_list_t* test_list;
+    single_linked_list_t test_list;
     assert((test_list = sll_init(&compare_int)) != NULL);
     int x, y;
     x = 420;
